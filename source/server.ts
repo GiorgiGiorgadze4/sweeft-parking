@@ -1,3 +1,5 @@
+import 'reflect-metadata';
+
 import http from 'http';
 import bodyParser from 'body-parser';
 import express from 'express';
@@ -5,35 +7,28 @@ import logging from './config/logging';
 import config from './config/config';
 import userRoutes from './routes/users';
 import carRoutes from './routes/cars';
+import parkingRoutes from './routes/parking';
 import extractJWT from './middleware/extractJWT';
+import dataSource from './config/db';
 
 const NAMESPACE = 'Server';
 const router = express();
 
-/** Log the request */
-// router.use((req, res, next) => {
-//     console.log('req.method: ', req.method);
-
-//     console.log('req.headers: ', req.headers);
-
-//     res.send('asd');
-
-//     // res.send('zd');
-
-//     // logging.info(NAMESPACE, `METHOD: [${req.method}] - URL: [${req.url}] - IP: [${req.socket.remoteAddress}]`);
-
-//     // res.on('finish', () => {
-//     //     logging.info(NAMESPACE, `METHOD: [${req.method}] - URL: [${req.url}] - STATUS: [${res.statusCode}] - IP: [${req.socket.remoteAddress}]`);
-//     // });
-// });
+// Establish database connection
+dataSource
+    .initialize()
+    .then(() => {
+        console.log('Data Source has been initialized!');
+    })
+    .catch((err) => {
+        console.error('Error during Data Source initialization:', err);
+    });
 
 /** Parse the body of the request */
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
 
-router.use(extractJWT);
-
-/** Rules of our API */
+/** Cors */
 router.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
@@ -46,9 +41,13 @@ router.use((req, res, next) => {
     next();
 });
 
+// Auth
+router.use(extractJWT);
+
 /** Routes go here */
 router.use('/users', userRoutes);
 router.use('/cars', carRoutes);
+router.use('/parking', parkingRoutes);
 /** Error handling */
 router.use((req, res, next) => {
     const error = new Error('Not found');
@@ -58,6 +57,6 @@ router.use((req, res, next) => {
     });
 });
 
+// Start the server
 const httpServer = http.createServer(router);
-
 httpServer.listen(config.server.port, () => logging.info(NAMESPACE, `Server is running ${config.server.hostname}:${config.server.port}`));

@@ -8,6 +8,22 @@ const params = {
     database: config.mysql.database
 };
 
+import { DataSource } from 'typeorm';
+
+const dataSource = new DataSource({
+    type: 'mysql',
+    host: config.mysql.host,
+    port: 3306,
+    username: config.mysql.user,
+    password: config.mysql.pass,
+    database: 'test',
+    entities: ['source/models/*.ts'],
+    logging: false,
+    synchronize: true
+});
+
+export default dataSource;
+
 const Connect = async () =>
     new Promise<mysql.Connection>((resolve, reject) => {
         const connection = mysql.createConnection(params);
