@@ -7,14 +7,11 @@ const signJWT = (user: User, callback: (error: Error | null, token: string | nul
     var expirationTime = timeSinceEpoch + Number(config.server.token.expireTime) * 100000;
     var expirationTimeInSeconds = Math.floor(expirationTime / 1000);
 
-    // TODO: See if the user has admin priviliges from db
-
     try {
         jwt.sign(
             {
                 userId: user.id, // Adding this so you can identify the user from the token itself
-                username: user.username,
-                administrator: user.administrator // This will include the administrator status in the token
+                username: user.username
             },
             config.server.token.secret,
             {
