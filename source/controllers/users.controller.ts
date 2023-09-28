@@ -5,7 +5,7 @@ import { UserRepository } from '../repositories/user.repository';
 import { User } from '../models/user.model';
 
 const register = (req: Request, res: Response, next: NextFunction) => {
-    let { username, password } = req.body;
+    let { username, password, administrator } = req.body;
     bcryptjs.hash(password, 10, (hashError, hashedPassword) => {
         if (hashError) {
             return res.status(401).json({
@@ -17,6 +17,9 @@ const register = (req: Request, res: Response, next: NextFunction) => {
         const user = new User();
         user.username = username;
         user.password = hashedPassword;
+
+        // For simplicity I let you decide during registratior if this account is admin or not
+        user.administrator = administrator;
 
         UserRepository.save(user)
             .then(async () => {

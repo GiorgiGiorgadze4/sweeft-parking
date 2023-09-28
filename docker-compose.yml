@@ -8,27 +8,37 @@ services:
     depends_on:
       - db
     environment:
-      - MYSQL_HOST=db
-      - MYSQL_USER=admin
-      - MYSQL_PASS=admin
-      - MYSQL_DATABASE=db
-    command: npm start
+      - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASS=${MYSQL_PASS}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    networks:
+      - app-network
+    command: npm run start:dev
 
   db:
     image: mysql:5.7
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: db
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: admin
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASS}
+    networks:
+      - app-network
 
   test:
     build: .
     depends_on:
       - db
+    networks:
+      - app-network
     environment:
-      - MYSQL_HOST=db
-      - MYSQL_USER=admin
-      - MYSQL_PASS=admin
-      - MYSQL_DATABASE=db
+      - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASS=${MYSQL_PASS}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
     command: npm test
+
+networks:
+  app-network:
+    driver: bridge

@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "main": "source/server.ts",
     "scripts": {
-        "start:dev": "ts-node-dev --clear source/server.ts",
+        "start:dev": "ts-node-dev source/server.ts",
         "test": "mocha -r ts-node/register 'tests/**/*.test.ts'",
         "build": "rm -rf build && prettier --write source/ && tsc"
     },

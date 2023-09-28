@@ -20,9 +20,7 @@ const dataSource = new DataSource({
     port: 3306,
     username: config.mysql.user,
     password: config.mysql.pass,
-    database: 'test',
-    // entities: ['source/models/*.ts'],
-    // entities: [__dirname + '/../**/*.entity.{js,ts}'],
+    database: config.mysql.database,
     entities: [User, Car, ParkingZone, ParkingHistory],
     logging: false,
     synchronize: true

@@ -1,5 +1,5 @@
 import { body } from 'express-validator';
-import { isNotEmpty, isNumber, isString } from '.';
+import { isBoolean, isNotEmpty, isNumber, isString } from '.';
 
 export const registerValidator = [
     isString('username'),
@@ -7,6 +7,8 @@ export const registerValidator = [
 
     isString('password'),
     isNotEmpty('password'),
+
+    isBoolean('administrator'),
 
     body('password', 'The minimum password length is 6 characters').isLength({ min: 6 })
 ];
