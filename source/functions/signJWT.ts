@@ -1,16 +1,11 @@
 import jwt from 'jsonwebtoken';
 import config from '../config/config';
-import logging from '../config/logging';
 import { User } from '../models/user.model';
-
-const NAMESPACE = 'Auth';
 
 const signJWT = (user: User, callback: (error: Error | null, token: string | null) => void): void => {
     var timeSinceEpoch = new Date().getTime();
     var expirationTime = timeSinceEpoch + Number(config.server.token.expireTime) * 100000;
     var expirationTimeInSeconds = Math.floor(expirationTime / 1000);
-
-    logging.info(NAMESPACE, `Attempting to sign token for ${user.id}`);
 
     // TODO: See if the user has admin priviliges from db
 
@@ -36,7 +31,6 @@ const signJWT = (user: User, callback: (error: Error | null, token: string | nul
             }
         );
     } catch (error: any) {
-        logging.error(NAMESPACE, error.message, error);
         callback(error, null);
     }
 };

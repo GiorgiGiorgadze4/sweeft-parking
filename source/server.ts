@@ -3,15 +3,15 @@ import 'reflect-metadata';
 import http from 'http';
 import bodyParser from 'body-parser';
 import express from 'express';
-import logging from './config/logging';
 import config from './config/config';
 import userRoutes from './routes/users';
 import carRoutes from './routes/cars';
 import parkingRoutes from './routes/parking';
-import extractJWT from './middleware/extractJWT';
+import adminRoutes from './routes/admin';
+import userAuth from './middleware/userAuth';
 import dataSource from './config/db';
+import isAdmin from './middleware/isAdmin';
 
-const NAMESPACE = 'Server';
 const router = express();
 
 // Establish database connection
@@ -41,16 +41,15 @@ router.use((req, res, next) => {
     next();
 });
 
-// Auth
-router.use(extractJWT);
-
 /** Routes go here */
 router.use('/users', userRoutes);
-router.use('/cars', carRoutes);
-router.use('/parking', parkingRoutes);
+router.use('/cars', userAuth, carRoutes);
+router.use('/parking', userAuth, parkingRoutes);
+router.use('/admin', userAuth, isAdmin, adminRoutes);
+
 /** Error handling */
 router.use((req, res, next) => {
-    const error = new Error('Not found');
+    const error = new Error('Route not found');
 
     res.status(404).json({
         message: error.message
@@ -59,4 +58,4 @@ router.use((req, res, next) => {
 
 // Start the server
 const httpServer = http.createServer(router);
-httpServer.listen(config.server.port, () => logging.info(NAMESPACE, `Server is running ${config.server.hostname}:${config.server.port}`));
+httpServer.listen(config.server.port, () => console.log(`Server is running ${config.server.hostname}:${config.server.port}`));

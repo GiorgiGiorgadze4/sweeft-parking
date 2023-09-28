@@ -17,7 +17,7 @@ export class User {
     password: string;
 
     @Column()
-    administrator: number;
+    administrator: boolean;
 
     @Column({ default: 0 })
     balance: number = 100;

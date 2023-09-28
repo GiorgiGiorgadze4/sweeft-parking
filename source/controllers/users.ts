@@ -1,27 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
 import bcryptjs from 'bcryptjs';
-import logging from '../config/logging';
 import signJWT from '../functions/signJWT';
-import { Connect, Query } from '../config/db';
-import IMySQLResult from '../interfaces/result';
-import { use } from '../routes/users';
-import { Car } from '../models/car.model';
 import { UserRepository } from '../repositories/user.repository';
 import { User } from '../models/user.model';
 
-const NAMESPACE = 'User';
-
-const validateToken = (req: Request, res: Response, next: NextFunction) => {
-    logging.info(NAMESPACE, 'Token validated, user authorized.');
-
-    return res.status(200).json({
-        message: 'Token(s) validated'
-    });
-};
-
 const register = (req: Request, res: Response, next: NextFunction) => {
     let { username, password } = req.body;
-    console.log(username, password);
     bcryptjs.hash(password, 10, (hashError, hashedPassword) => {
         if (hashError) {
             return res.status(401).json({
@@ -50,11 +34,6 @@ const register = (req: Request, res: Response, next: NextFunction) => {
 const login = async (req: Request, res: Response, next: NextFunction) => {
     let { username, password } = req.body;
 
-    console.log('logging in the user...');
-    console.log('username: ', username);
-    console.log('password: ', password);
-    console.log('\n\n');
-
     const userPassword = (await UserRepository.findOne({ where: { username }, select: ['password'] }))?.password;
 
     if (!userPassword) {
@@ -63,13 +42,7 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
         });
     }
 
-    console.log('userPassword: ', userPassword);
-
     bcryptjs.compare(password, userPassword, async (error, result) => {
-        console.log('done comparing raw password with the hashed password!');
-        console.log('error: ', error);
-        console.log('result: ', result);
-
         // If error has occured or the result of comparing is false return error
         if (error || result === false) {
             return res.status(401).json({
@@ -98,17 +71,6 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
-    // Extract admin status from the JWT payload
-    const isAdmin = res.locals.jwt.administrator;
-
-    // If not an admin, return an unauthorized error
-    // TODO: Move this
-    if (isAdmin != 1) {
-        return res.status(403).json({
-            message: 'Only admins have access to all the users data'
-        });
-    }
-
     try {
         const users = await UserRepository.find({ relations: ['cars', 'parkingHistory'] });
         return res.status(200).json({
@@ -123,7 +85,7 @@ const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 const addBalance = async (req: Request, res: Response, next: NextFunction) => {
-    const userId = Number(req.params.userId);
+    const userId = res.locals.jwt.userId;
     const { amount } = req.body; // amount to be added
 
     try {
@@ -144,14 +106,10 @@ const addBalance = async (req: Request, res: Response, next: NextFunction) => {
             message: 'Error updating balance.'
         });
     }
-    // catch (error) {
-    //     logging.error(NAMESPACE, error.message, error);
-    //     return res.status(500).json({ message: 'Error updating balance.', error: error.message });
-    // }
 };
 
 const getBalance = async (req: Request, res: Response, next: NextFunction) => {
-    const userId = Number(req.params.userId);
+    const userId = res.locals.jwt.userId;
 
     try {
         const user = await UserRepository.findOne({ where: { id: userId } });
@@ -168,4 +126,4 @@ const getBalance = async (req: Request, res: Response, next: NextFunction) => {
     }
 };
 
-export default { validateToken, register, login, getAllUsers, addBalance, getBalance };
+export default { register, login, getAllUsers, addBalance, getBalance };
