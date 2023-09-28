@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { User } from './user.model';
 import { ParkingHistory } from './parkingHistory.model';
 
@@ -21,4 +21,7 @@ export class Car {
     @ManyToOne(() => User, (user) => user.cars)
     @JoinColumn()
     user?: User;
+
+    @OneToMany(() => ParkingHistory, (phs) => phs.car)
+    parkingHistory?: ParkingHistory[];
 }

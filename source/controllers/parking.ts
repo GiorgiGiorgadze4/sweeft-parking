@@ -1,11 +1,15 @@
 import { NextFunction, Request, Response } from 'express';
-
 import { ParkingZoneRepository } from '../repositories/parkingZones.repository';
-import { UserRepository } from '../repositories/user.repository';
 import { ParkingHistoryRepository } from '../repositories/parkingHistory.repository';
-import { CarRepository } from '../repositories/car.repository';
 import { ParkingZone } from '../models/parkingZones.model';
 import { ParkingHistory } from '../models/parkingHistory.model';
+import { cancelJob, scheduleJob } from 'node-schedule';
+import { UserRepository } from '../repositories/user.repository';
+import { IsNull } from 'typeorm';
+
+// const oneHour = 60 * 60 * 1000;
+const oneHour = 5 * 1000;
+
 const getParkingZones = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const parkingZones = await ParkingZoneRepository.find();
@@ -15,36 +19,83 @@ const getParkingZones = async (req: Request, res: Response, next: NextFunction) 
     }
 };
 
+async function chargeUser(userId: number, parkingZoneId: number) {
+    const user = await UserRepository.findOneBy({ id: userId });
+    const parkingZone = await ParkingZoneRepository.findOneBy({ id: parkingZoneId });
+
+    if(!user || !parkingZone) return;
+
+    const newUserBalance = user?.balance - parkingZone.hourlyRate;
+
+    await UserRepository.update(userId, { balance: newUserBalance });
+
+    const parkingZoneHistory = await ParkingHistoryRepository.findOneBy({ userId, parkingZoneId, endTime: IsNull() });
+
+    // If the user still has parking zone reserved, run the job again
+    if(parkingZoneHistory && !parkingZoneHistory.endTime) {
+        const job = scheduleJob(new Date(Date.now() + oneHour), async function() {
+            await chargeUser(userId, parkingZoneId);
+        });
+        await ParkingHistoryRepository.update(parkingZoneHistory.id, { jobName: job.name })
+    }
+}
+
 const reserveParkingZone = async (req: Request, res: Response, next: NextFunction) => {
     const userId = Number(res.locals.jwt.userId);
 
     const { carId, parkingZoneId } = req.body;
     
     try {
-        const user = await UserRepository.findOne({ where: { id: userId } });
-
-        const parkingZone = await ParkingZoneRepository.findOne({ where: { id: parkingZoneId } });
-        const car = await CarRepository.findOne({ where: { id: carId } });
-
-        if (!user || !parkingZone || !car) {
-            return res.status(404).json({ message: 'User, car, or parking zone not found' });
+        // Check if the parking zone is already reserved
+        const parkingZoneHistory = await ParkingHistoryRepository.findOneBy({ userId, parkingZoneId, endTime: IsNull() });
+        if(parkingZoneHistory?.endTime) {
+            return res.status(400).json({ message: 'Parking Zone already reserved.' });
         }
 
-        // You can add logic here to check if the parking zone is already reserved
+        // Schedule a job to charge the user after one hour
+        const job = scheduleJob(new Date(Date.now() + oneHour), async function() {
+            await chargeUser(userId, parkingZoneId);
+        });
 
-        // Create a new parking history record to store the reservation information
+        // Otherwise, create a new parking history record to store the reservation information
         const parkingHistory = new ParkingHistory();
         parkingHistory.carId = carId;
         parkingHistory.userId = userId;
         parkingHistory.parkingZoneId = parkingZoneId;
         parkingHistory.startTime = new Date(); // Set the current time as the start time of the reservation
+        parkingHistory.jobName = job.name;
 
-        await ParkingHistoryRepository.save(parkingHistory); // Save the reservation information in the database
+        await ParkingHistoryRepository.save(parkingHistory);
+
         return res.status(200).json({ message: 'Parking zone reserved successfully', reservationId: parkingHistory.id });
     } catch (error) {
         return res.status(500).json({ message: 'Error reserving parking zone', error });
     }
 };
+
+const releaseParkingZone = async (req: Request, res: Response, next: NextFunction) => {
+    const userId = Number(res.locals.jwt.userId);
+    const { parkingZoneId } = req.body;
+
+    const parkingZoneHistory = await ParkingHistoryRepository.findOneBy({ userId, parkingZoneId, endTime: IsNull() });
+    if(!parkingZoneHistory) {
+        return res.status(400).json({ message: "You don't have this parking zone reserved." });
+    }
+
+    // Cancel the currently running job
+    cancelJob(parkingZoneHistory.jobName || "");
+
+    // Update the parking zone history with the end date to indicate that the parking zone has been released
+    await ParkingHistoryRepository.update(
+        parkingZoneHistory.id,
+        {
+            endTime: new Date(),
+        }
+    )
+
+    return res.status(200).json({ message: 'Parking zone released successfully' });
+
+}
 
 const getParkingHistory = async (req: Request, res: Response, next: NextFunction) => {
     const parkingZoneId = Number(req.params.parkingZoneId);
@@ -125,4 +176,4 @@ const deleteParkingZone = async (req: Request, res: Response, next: NextFunction
 
 // TODO: const getMyParkingHistory
 
-export default { getParkingZones, reserveParkingZone, getParkingHistory, getParkingHistoryForUser, editParkingZone, deleteParkingZone, addParkingZone };
+export default { getParkingZones, reserveParkingZone, releaseParkingZone, getParkingHistory, getParkingHistoryForUser, editParkingZone, deleteParkingZone, addParkingZone };

@@ -1,10 +1,14 @@
 import { isNotEmpty, isNumber, isString } from '.';
 
 export const reserveParkingZoneValidator = [
-    isString('carId'),
+    isNumber('carId'),
     isNotEmpty('carId'),
     
-    isString('parkingZoneId'),
+    isNumber('parkingZoneId'),
+    isNotEmpty('parkingZoneId'),
+];
+export const releaseParkingZoneValidator = [
+    isNumber('parkingZoneId'),
     isNotEmpty('parkingZoneId'),
 ];
 

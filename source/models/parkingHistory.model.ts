@@ -11,8 +11,11 @@ export class ParkingHistory {
     @Column()
     startTime: Date;
 
-    @Column()
-    endTime: Date;
+    @Column({ nullable: true })
+    endTime?: Date;
+
+    @Column({ nullable: true })
+    jobName?: string; // Cron job name to be able to cancel at any moment
 
     @Column()
     userId: number;
@@ -22,12 +25,9 @@ export class ParkingHistory {
 
     @Column()
     carId: number;
-    @OneToOne(() => Car)
+    @ManyToOne(() => Car)
     @JoinColumn()
     car?: Car;
-    // @OneToOne(() => Car, (car) => car.id)
-    // @JoinColumn({ name: 'car' })
-    // car: Car;
 
     @Column()
     parkingZoneId: number;
