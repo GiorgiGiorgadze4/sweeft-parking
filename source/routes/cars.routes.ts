@@ -1,6 +1,6 @@
 import express from 'express';
 
-import controller from '../controllers/cars';
+import controller from '../controllers/cars.controller';
 import { validate } from '../middleware/validate';
 import { addCarValidator } from '../validators/car.validators';
 const router = express.Router();

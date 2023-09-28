@@ -1,5 +1,5 @@
 import express from 'express';
-import controller from '../controllers/users';
+import controller from '../controllers/users.controller';
 import userAuth from '../middleware/userAuth';
 import { validate } from '../middleware/validate';
 import { addBalanceValidator, loginValidator, registerValidator, resetPasswordValidator } from '../validators/user.validators';

@@ -1,7 +1,7 @@
 import express from 'express';
-import userController from '../controllers/users';
-import carController from '../controllers/cars';
-import parkingController from '../controllers/parking';
+import userController from '../controllers/users.controller';
+import carController from '../controllers/cars.controller';
+import parkingController from '../controllers/parking.controller';
 import { validate } from '../middleware/validate';
 import { addParkingZoneValidator, editParkingZoneValidator } from '../validators/parking.valdaitors';
 

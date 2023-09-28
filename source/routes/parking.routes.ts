@@ -1,5 +1,5 @@
 import express from 'express';
-import controller from '../controllers/parking';
+import controller from '../controllers/parking.controller';
 import { validate } from '../middleware/validate';
 import { releaseParkingZoneValidator, reserveParkingZoneValidator } from '../validators/parking.valdaitors';
 
