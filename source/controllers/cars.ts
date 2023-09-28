@@ -14,18 +14,12 @@ const getMyCars = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 const addCar = async (req: Request, res: Response, next: NextFunction) => {
-    const { name, state_number, type } = req.body;
-    const userId = res.locals.jwt.userId;
-
-    if (!name || !state_number || !type) {
-        return res.status(400).json({ message: 'Incomplete car details.' });
-    }
+    const { name, stateNumber, type } = req.body;
 
     const car = new Car();
-    car.name = name;
-    car.stateNumber = state_number;
-    car.type = type;
-    car.userId = userId;
+    car.name = name || car.name;
+    car.stateNumber = stateNumber || car.stateNumber;
+    car.type = type || car.type;
 
     try {
         const newCar = await CarRepository.save(car);
@@ -48,10 +42,12 @@ const getUserCars = async (req: Request, res: Response, next: NextFunction) => {
 
 const editCar = async (req: Request, res: Response, next: NextFunction) => {
     const carId = Number(req.params.carId);
-    const { name, state_number, type } = req.body;
+    const { name, stateNumber, type } = req.body;
+
+    // TODO: Check if the car belongs to the user
 
     try {
-        await CarRepository.update(carId, { name, stateNumber: state_number, type });
+        await CarRepository.update(carId, { name, stateNumber, type });
         return res.status(200).json({ message: 'Car updated successfully' });
     } catch (error) {
         return res.status(500).json({ message: 'Error updating car' });

@@ -15,31 +15,11 @@ const getParkingZones = async (req: Request, res: Response, next: NextFunction) 
     }
 };
 
-// const reserveParkingZone = async (req: Request, res: Response, next: NextFunction) => {
-//     const userId = res.locals.jwt.userId; // Get user ID from JWT token
-//     const parkingZoneId = Number(req.params);
-//     const CarId = Number(req.params);
-//     try {
-//         const user = await UserRepository.findOne(userId);
-//         const parkingZone = await ParkingZoneRepository.findOne({ where: { id: parkingZoneId } });
-
-//         if (!user || !parkingZone) {
-//             return res.status(404).json({ message: 'User or parking zone not found' });
-//         }
-
-//         // Implement the logic to check if the parking zone is available and reserve it
-//         // Also, you should deduct the user's balance according to the parking zone's hourly rate
-
-//         return res.status(200).json({ message: 'Parking zone reserved successfully' });
-//     } catch (error) {
-//         return res.status(500).json({ message: 'Error reserving parking zone' });
-//     }
-// };
 const reserveParkingZone = async (req: Request, res: Response, next: NextFunction) => {
     const userId = Number(res.locals.jwt.userId);
-    const parkingZoneId = req.body.id;
-    const carId = req.body.carId;
 
+    const { carId, parkingZoneId } = req.body;
+    
     try {
         const user = await UserRepository.findOne({ where: { id: userId } });
 
@@ -92,11 +72,7 @@ const getParkingHistoryForUser = async (req: Request, res: Response, next: NextF
 const addParkingZone = async (req: Request, res: Response, next: NextFunction) => {
     const { name, location, hourlyRate } = req.body;
 
-    if (!name || !location || hourlyRate == null) {
-        return res.status(400).json({ message: 'Incomplete parking zone details.' });
-    }
-
-    const parkingZone = new ParkingZone(); // Assuming ParkingZone is your entity
+    const parkingZone = new ParkingZone();
     parkingZone.name = name;
     parkingZone.location = location;
     parkingZone.hourlyRate = hourlyRate;

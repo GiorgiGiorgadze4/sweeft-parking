@@ -3,6 +3,7 @@ import bcryptjs from 'bcryptjs';
 import signJWT from '../functions/signJWT';
 import { UserRepository } from '../repositories/user.repository';
 import { User } from '../models/user.model';
+import { validationResult } from 'express-validator';
 
 const register = (req: Request, res: Response, next: NextFunction) => {
     let { username, password } = req.body;
