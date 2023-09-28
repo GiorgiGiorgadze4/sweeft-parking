@@ -3,7 +3,6 @@ import bcryptjs from 'bcryptjs';
 import signJWT from '../functions/signJWT';
 import { UserRepository } from '../repositories/user.repository';
 import { User } from '../models/user.model';
-import { validationResult } from 'express-validator';
 
 const register = (req: Request, res: Response, next: NextFunction) => {
     let { username, password } = req.body;
@@ -71,6 +70,50 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
     });
 };
 
+const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
+    // Ability to reset your password when you are already logged in
+    // And you know your old password.
+    // (If we wanted password restore functionality, we would have to
+    // implement third party services such as Nodemailer or Twilio)
+
+    const userId = res.locals.jwt.userId;
+    const { oldPassword, newPassword } = req.body;
+
+    const user = await UserRepository.findOne({ where: { id: userId }, select: ['password'] });
+
+    if (!user) {
+        return res.status(400).json({
+            message: `Unable to find the user.`
+        });
+    }
+
+    bcryptjs.compare(oldPassword, user.password, async (error, result) => {
+        // If error has occured or the result of comparing is false return error
+        if (error || result === false) {
+            return res.status(401).json({
+                message: 'Password mismatch, could not reset your password'
+            });
+        }
+
+        // If oldPassword is accurate, hash the newPassword and update the user
+        bcryptjs.hash(newPassword, 10, async (hashError, hashedPassword) => {
+            if (hashError) {
+                return res.status(401).json({
+                    message: hashError.message,
+                    error: hashError
+                });
+            }
+
+            try {
+                await UserRepository.update(userId, { password: hashedPassword });
+                return res.status(200).json({ message: 'Password updated successfully' });
+            } catch (error) {
+                return res.status(500).json({ message: 'Error updating your password' });
+            }
+        });
+    });
+};
+
 const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const users = await UserRepository.find({ relations: ['cars', 'parkingHistory'] });
@@ -127,4 +170,4 @@ const getBalance = async (req: Request, res: Response, next: NextFunction) => {
     }
 };
 
-export default { register, login, getAllUsers, addBalance, getBalance };
+export default { register, login, resetPassword, getAllUsers, addBalance, getBalance };

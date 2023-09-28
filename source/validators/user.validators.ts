@@ -4,7 +4,7 @@ import { isNotEmpty, isNumber, isString } from '.';
 export const registerValidator = [
     isString('username'),
     isNotEmpty('username'),
-    
+
     isString('password'),
     isNotEmpty('password'),
 
@@ -16,10 +16,15 @@ export const loginValidator = [
     isNotEmpty('username'),
 
     isString('password'),
-    isNotEmpty('password'),
+    isNotEmpty('password')
 ];
 
-export const addBalanceValidator = [
-    isNumber("amount"),
-    isNotEmpty("amount"),
-]
+export const resetPasswordValidator = [
+    isString('oldPassword'),
+    isNotEmpty('oldPassword'),
+
+    isString('newPassword'),
+    isNotEmpty('newPassword')
+];
+
+export const addBalanceValidator = [isNumber('amount'), isNotEmpty('amount')];
