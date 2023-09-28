@@ -19,6 +19,31 @@ const getParkingZones = async (req: Request, res: Response, next: NextFunction) 
     }
 };
 
+// Active means not reserved
+const getParkingZonesAvailable = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // Currently I load all the parking zones and filter them myself,
+        // this way of filtering can be improved by writing a correct query
+        const allParkingZones = await ParkingZoneRepository.find({ relations: ["parkingHistories"] });
+        const availableParkingZones = allParkingZones.filter(zone => {
+            // If the parking history is an empty array, then the parking zone is not reserved and should be included as available
+            if(!zone.parkingHistories || zone.parkingHistories?.length === 0) return true;
+
+            let parkingZoneReserved = false;
+            for(const history of zone?.parkingHistories) {
+                if(!history.endTime) parkingZoneReserved = true;
+            }
+
+            // Dont include the parking zone if it is resered
+            return !parkingZoneReserved;
+        })
+
+        return res.status(200).json({ parkingZones: availableParkingZones });
+    } catch (error) {
+        return res.status(500).json({ message: 'Error retrieving available parking zones', error });
+    }
+};
+
 async function chargeUser(userId: number, parkingZoneId: number) {
     const user = await UserRepository.findOneBy({ id: userId });
     const parkingZone = await ParkingZoneRepository.findOneBy({ id: parkingZoneId });
@@ -176,4 +201,4 @@ const deleteParkingZone = async (req: Request, res: Response, next: NextFunction
 
 // TODO: const getMyParkingHistory
 
-export default { getParkingZones, reserveParkingZone, releaseParkingZone, getParkingHistory, getParkingHistoryForUser, editParkingZone, deleteParkingZone, addParkingZone };
+export default { getParkingZones, getParkingZonesAvailable, reserveParkingZone, releaseParkingZone, getParkingHistory, getParkingHistoryForUser, editParkingZone, deleteParkingZone, addParkingZone };
