@@ -9,6 +9,10 @@ const params = {
 };
 
 import { DataSource } from 'typeorm';
+import { User } from '../models/user.model';
+import { Car } from '../models/car.model';
+import { ParkingZone } from '../models/parkingZones.model';
+import { ParkingHistory } from '../models/parkingHistory.model';
 
 const dataSource = new DataSource({
     type: 'mysql',
@@ -17,7 +21,9 @@ const dataSource = new DataSource({
     username: config.mysql.user,
     password: config.mysql.pass,
     database: 'test',
-    entities: ['source/models/*.ts'],
+    // entities: ['source/models/*.ts'],
+    // entities: [__dirname + '/../**/*.entity.{js,ts}'],
+    entities: [User, Car, ParkingZone, ParkingHistory],
     logging: false,
     synchronize: true
 });

@@ -14,18 +14,19 @@ const getMyCars = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 const addCar = async (req: Request, res: Response, next: NextFunction) => {
+    const userId = res.locals.jwt.userId;
     const { name, stateNumber, type } = req.body;
 
     const car = new Car();
     car.name = name || car.name;
     car.stateNumber = stateNumber || car.stateNumber;
     car.type = type || car.type;
+    car.userId = userId;
 
     try {
         const newCar = await CarRepository.save(car);
-        return res.status(201).json({ message: 'Car added successfully', carId: newCar.id });
+        return res.status(201).json({ message: 'Car added successfully', car: newCar });
     } catch (error) {
-        //TODO:error to say car state_name is dupe
         return res.status(500).json({ message: 'Database error' });
     }
 };
@@ -48,7 +49,11 @@ const editCar = async (req: Request, res: Response, next: NextFunction) => {
 
     try {
         await CarRepository.update(carId, { name, stateNumber, type });
-        return res.status(200).json({ message: 'Car updated successfully' });
+        const updatedCar = await CarRepository.findOneBy({ id: carId });
+        return res.status(200).json({
+            message: 'Car updated successfully',
+            car: updatedCar,
+        });
     } catch (error) {
         return res.status(500).json({ message: 'Error updating car' });
     }

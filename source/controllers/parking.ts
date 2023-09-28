@@ -8,7 +8,7 @@ import { UserRepository } from '../repositories/user.repository';
 import { IsNull } from 'typeorm';
 
 // const oneHour = 60 * 60 * 1000;
-const oneHour = 5 * 1000;
+const oneHour = 5 * 1000; // Set to 5 seconds for testing purposes
 
 const getParkingZones = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -195,10 +195,11 @@ const deleteParkingZone = async (req: Request, res: Response, next: NextFunction
         await ParkingZoneRepository.delete(parkingZoneId);
         return res.status(200).json({ message: 'Parking zone deleted successfully' });
     } catch (error) {
+        console.log("FULL error: ", error)
         return res.status(500).json({ message: 'Error deleting parking zone', error });
     }
 };
 
-// TODO: const getMyParkingHistory
+
 
 export default { getParkingZones, getParkingZonesAvailable, reserveParkingZone, releaseParkingZone, getParkingHistory, getParkingHistoryForUser, editParkingZone, deleteParkingZone, addParkingZone };

@@ -17,6 +17,6 @@ export class ParkingZone {
     @Column()
     hourlyRate: number;
 
-    @OneToMany(() => ParkingHistory, (history) => history.parkingZone)
+    @OneToMany(() => ParkingHistory, (history) => history.parkingZone, { onDelete: "CASCADE" })
     parkingHistories?: ParkingHistory[];
 }

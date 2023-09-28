@@ -10,4 +10,6 @@ build/**/*
 *.mobileprovision
 *.orig.*
 
+.env
+
 package-lock.json

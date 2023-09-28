@@ -18,7 +18,7 @@ export class Car {
 
     @Column()
     userId: number;
-    @ManyToOne(() => User, (user) => user.cars)
+    @ManyToOne(() => User, (user) => user.cars, { onDelete: "CASCADE" })
     @JoinColumn()
     user?: User;
 

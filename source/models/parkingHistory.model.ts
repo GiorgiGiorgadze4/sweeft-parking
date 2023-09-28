@@ -19,18 +19,18 @@ export class ParkingHistory {
 
     @Column()
     userId: number;
-    @ManyToOne(() => User, (user) => user.parkingHistory)
+    @ManyToOne(() => User, (user) => user.parkingHistory, { onDelete: "CASCADE" })
     @JoinColumn()
     user?: User;
 
     @Column()
     carId: number;
-    @ManyToOne(() => Car)
+    @ManyToOne(() => Car, { onDelete: "CASCADE" })
     @JoinColumn()
     car?: Car;
 
     @Column()
     parkingZoneId: number;
-    @ManyToOne(() => ParkingZone, (zone) => zone.parkingHistories)
+    @ManyToOne(() => ParkingZone, (zone) => zone.parkingHistories, { onDelete: "CASCADE" })
     parkingZone?: ParkingZone;
 }

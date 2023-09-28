@@ -11,8 +11,9 @@ import adminRoutes from './routes/admin';
 import userAuth from './middleware/userAuth';
 import dataSource from './config/db';
 import isAdmin from './middleware/isAdmin';
+import 'dotenv/config';
 
-const router = express();
+const app = express();
 
 // Establish database connection
 dataSource
@@ -25,11 +26,11 @@ dataSource
     });
 
 /** Parse the body of the request */
-router.use(bodyParser.urlencoded({ extended: true }));
-router.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 /** Cors */
-router.use((req, res, next) => {
+app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
 
@@ -41,14 +42,14 @@ router.use((req, res, next) => {
     next();
 });
 
-/** Routes go here */
-router.use('/users', userRoutes);
-router.use('/cars', userAuth, carRoutes);
-router.use('/parking', userAuth, parkingRoutes);
-router.use('/admin', userAuth, isAdmin, adminRoutes);
+/** Routes */
+app.use('/users', userRoutes);
+app.use('/cars', userAuth, carRoutes);
+app.use('/parking', userAuth, parkingRoutes);
+app.use('/admin', userAuth, isAdmin, adminRoutes);
 
 /** Error handling */
-router.use((req, res, next) => {
+app.use((req, res, next) => {
     const error = new Error('Route not found');
 
     res.status(404).json({
@@ -57,5 +58,7 @@ router.use((req, res, next) => {
 });
 
 // Start the server
-const httpServer = http.createServer(router);
+const httpServer = http.createServer(app);
 httpServer.listen(config.server.port, () => console.log(`Server is running ${config.server.hostname}:${config.server.port}`));
+
+export default app;

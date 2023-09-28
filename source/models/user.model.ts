@@ -22,10 +22,10 @@ export class User {
     @Column({ default: 0 })
     balance: number = 100;
 
-    @OneToMany(() => Car, (car) => car.user)
+    @OneToMany(() => Car, (car) => car.user, { onDelete: "CASCADE" })
     cars?: Car[];
 
-    @OneToMany(() => ParkingHistory, (phs) => phs.user)
+    @OneToMany(() => ParkingHistory, (phs) => phs.user, { onDelete: "CASCADE" })
     parkingHistory?: ParkingHistory[];
     // @OneToMany(() => ParkingZone, (parking_zones) => parking_zones.user)
     // zones: ParkingZone[];
